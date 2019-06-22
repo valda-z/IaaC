@@ -1,0 +1,15 @@
+[Unit]
+Description=MySimpleApp
+After=network-online.target
+
+[Service]
+EnvironmentFile=/etc/mysimpleapp.env
+Type=simple
+WorkingDirectory=/var/opt/mysimpleapp
+ExecStart=/usr/bin/java -jar /usr/local/mysimpleapp/app.jar
+Restart=on-abort
+User=mysimpleapp
+Group=mysimpleapp
+
+[Install]
+WantedBy=multi-user.target
