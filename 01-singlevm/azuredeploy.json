@@ -259,7 +259,7 @@
               "fileUris": [
                 "[parameters('artifactsLocation')]"
               ],
-              "commandToExecute": "[concat('sudo bash install.sh ',variables('postgresurl'),' ',parameters('rpmurl'))]"
+              "commandToExecute": "[concat('sudo bash install.sh \"',variables('postgresurl'),'\" \"',parameters('rpmurl'),'\"')]"
             }
           }
         },        
