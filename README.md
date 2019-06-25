@@ -1,8 +1,21 @@
 # IaaC
 
+This LAN materials demonstrates few possible scenarios how to automatically deploy and operate infrastructure and applications.
+Our experiments are using JAVA based application and for persistent layer we will use PostgreSQL database, in advanced scenarios we will use instead of simple JAVA app two docker containers (first one with single page HTML5 app and second with JAVA microservice REST API).
+
+## Preparation steps
+
+Before we will start with our experiments we will create Azure Container Registry where we will store final docker images with SPA application, JAVA REST API microservice and special docker image for building JAVA based apps into RPM installation packages.
+
+Blob Storage is used for storing final RPM packages with our application.
+
+#### Prepare ACR and Blob Storage
+
 ```bash
-# create blob storage for our artifacts (RPM files, installation files, binary files).
+# define parameters for our deployment
+# This parameter is used for creating Azure Container Registry and Blob Storage, parameter must be unique name.
 export DEVOPS_UNIQUENAME=valdadevop001
+# rest of parameters
 export DEVOPS_BLOBSTORAGE_NAME=${DEVOPS_UNIQUENAME}sbs
 export DEVOPS_ACR_NAME=${DEVOPS_UNIQUENAME}acr
 export DEVOPS_RG=TST_DEVOPS
@@ -11,6 +24,7 @@ export LOCATION=northeurope
 # create resource group
 az group create --location ${LOCATION} --name ${DEVOPS_RG}
 
+# create blob storage for our artifacts (RPM files, installation files, binary files).
 # Create storage account
 az storage account create -n $DEVOPS_BLOBSTORAGE_NAME \
     -g $DEVOPS_RG \
@@ -40,6 +54,18 @@ export ACR_URL=$(az acr show --name $DEVOPS_ACR_NAME --resource-group $DEVOPS_RG
 # Get ACR key for our experiments
 export ACR_KEY=$(az acr credential show --name $DEVOPS_ACR_NAME --resource-group $DEVOPS_RG --query "passwords[0].value" --output tsv)
 ```
+
+#### Build our applications
+
+In these steps we will build docker images with:
+
+* Single Page Application - image based on nginx, application based on angular 1.4
+* JAVA REST API microservice - JAVA spring-boot application
+* RPM build image - image for building JAVA application and packaging it to RPM installation packages
+
+And finally we will use RPM build docker image for building and packaging our JAVA application into RPM installation package. Build is done in Azure COntainer Instance where docker image will run (it will pull source codes from github and after build it upload RPM package to Blob Storage). 
+
+In last steps we will generate SAS (Shared Access Signature) token for blob containing RPM package and print out variables which have to be stored for future usage.
 
 ```bash
 # build 
@@ -89,23 +115,25 @@ done
 az container delete -g ${DEVOPS_RG} -n rpm --yes
 
 # generate SAS for RPM blob
-# .... blob is usualy there: 
+# .... blob is usually there: 
 RPMBLOB="https://${DEVOPS_BLOBSTORAGE_NAME}.blob.core.windows.net/assets/noarch/mysimpleapp-0.1.0H-0.noarch.rpm"
 # generate SAS for RPM blob
 end=`date -d "10 years" '+%Y-%m-%dT%H:%MZ'`
 RPMBLOBSAS=$(az storage blob generate-sas --account-name ${DEVOPS_BLOBSTORAGE_NAME} -c assets -n "noarch/mysimpleapp-0.1.0H-0.noarch.rpm" --permissions r --expiry $end --https-only -o tsv)
 
-# collect required information 
+# collect required information - store export variables for future use
 echo "export ACR_NAME=${DEVOPS_ACR_NAME}
 export ACR_URL=${ACR_URL}
 export ACR_KEY=${ACR_KEY}
 export RPM=\"${RPMBLOB}?${RPMBLOBSAS}\""
 ```
 
-rnd
-openssl rand -base64 32
+## Experiments
 
-dd if=/dev/urandom bs=1 count=302 2>/dev/null | tr -dc _A-Z-a-z-0-9 | head -c6
+
+## Useful links
+
+openssl rand -base64 30
 
 password
 https://github.com/Azure/azure-quickstart-templates/tree/master/101-vm-secure-password
