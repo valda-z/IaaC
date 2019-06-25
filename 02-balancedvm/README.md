@@ -1,4 +1,4 @@
-# Balanced set of VM deployment with PostgreSQL
+# Balanced set of VMs with PostgreSQL
 
 Deploying set of VMs with load balancer, VMs will be installed automatically by extension script. 
 

@@ -1,4 +1,4 @@
-# Single VM deployment with PostgreSQL
+# Single VM with PostgreSQL
 
 Deploying single VM with public IP address, VM will be installed automatically by extension script. 
 
