@@ -96,10 +96,10 @@ end=`date -d "10 years" '+%Y-%m-%dT%H:%MZ'`
 RPMBLOBSAS=$(az storage blob generate-sas --account-name ${DEVOPS_BLOBSTORAGE_NAME} -c assets -n "noarch/mysimpleapp-0.1.0H-0.noarch.rpm" --permissions r --expiry $end --https-only -o tsv)
 
 # collect required information 
-echo "export ACR_NAME=${DEVOPS_ACR_NAME}"
-echo "export ACR_URL=${ACR_URL}"
-echo "export ACR_KEY=${ACR_KEY}"
-echo "export RPM=\"${RPMBLOB}?${RPMBLOBSAS}\""
+echo "export ACR_NAME=${DEVOPS_ACR_NAME}
+export ACR_URL=${ACR_URL}
+export ACR_KEY=${ACR_KEY}
+export RPM=\"${RPMBLOB}?${RPMBLOBSAS}\""
 ```
 
 rnd

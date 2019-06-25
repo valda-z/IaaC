@@ -257,7 +257,7 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
               "fileUris": [
-                "[concat(parameters('artifactsLocation'), '/install.sh')]"
+                "[parameters('artifactsLocation')]"
               ],
               "commandToExecute": "[concat('sudo bash install.sh ',variables('postgresurl'),' ',parameters('rpmurl'))]"
             }
