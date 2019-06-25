@@ -130,6 +130,8 @@ export RPM=\"${RPMBLOB}?${RPMBLOBSAS}\""
 
 ## Experiments
 
+### [01 - Single VM hosts mysimpleapp](01-singlevm/)
+### [02 - Couple of VMs with load balancer host mysimpleapp](02-balancedvm)
 
 ## Useful links
 
