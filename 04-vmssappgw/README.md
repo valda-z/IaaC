@@ -37,7 +37,7 @@ az group deployment create -g ${RG} --template-file azuredeploy.json --parameter
     acrname="${ACR_NAME}" \
     acrkey="${ACR_KEY}" \
     acrimgspa="${ACR_URL}/myappspa:v1" \
-    acrimgtodo="${ACR_URL}/myapptodo:v2" \
+    acrimgtodo="${ACR_URL}/myapptodo:v1" \
     artifactsLocation="https://raw.githubusercontent.com/valda-z/IaaC/master/04-vmssappgw/install.sh"
 
 ```

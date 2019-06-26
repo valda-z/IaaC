@@ -221,7 +221,7 @@
                             "port": 8080,
                             "intervalInSeconds": 5,
                             "numberOfProbes": 2,
-                            "requestPath": "/api/todo"
+                            "requestPath": "/"
                         }       
                     }
                 ]

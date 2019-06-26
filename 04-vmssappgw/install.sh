@@ -11,10 +11,16 @@
 ######################################################
 
 # install dependencies - JAVA
-yum install -y docker-ce docker-compose docker-ce-cli containerd.io sudo wget
+yum install -y docker sudo wget epel-release
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+systemctl enable docker
+systemctl start docker
 
 # prepare files ---------------------
-mkdir /var/opt/myapp
+mkdir -p /var/opt/myapp
 
 POSTGRESQL_URL="$1"
 ACR_NAME="$2"
@@ -30,7 +36,7 @@ After=network-online.target
 [Service]
 Type=simple
 WorkingDirectory=/var/opt/myapp
-ExecStart=docker login -u ${ACR_NAME} -p ${ACR_KEY} ${ACR_NAME}.azurecr.io && docker-compose up
+ExecStart=/bin/bash /var/opt/myapp/run.sh
 RemainAfterExit=no
 Restart=always
 RestartSec=5s
@@ -39,17 +45,24 @@ RestartSec=5s
 WantedBy=multi-user.target
 " > /usr/lib/systemd/system/myapp.service
 
+echo "#!/bin/bash
+cd /var/opt/myapp
+/usr/bin/docker login -u ${ACR_NAME} -p ${ACR_KEY} ${ACR_NAME}.azurecr.io
+/usr/bin/docker-compose up
+" > /var/opt/myapp/run.sh
+chmod +x /var/opt/myapp/run.sh
+
 echo "version: '3'
 services:
   myappspa:
-    image: ${SPA_IMAGE} 
-    ports: 
+    image: ${SPA_IMAGE}
+    ports:
       - '8080:8080'
   myapptodo:
-    image: ${TODO_IMAGE} 
-    ports: 
+    image: ${TODO_IMAGE}
+    ports:
       - '8081:8080'
-    environment: 
+    environment:
       POSTGRESQL_URL: \"${POSTGRESQL_URL}\"
 " > /var/opt/myapp/docker-compose.yaml
 
