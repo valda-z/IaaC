@@ -14,7 +14,7 @@
 yum install -y docker-ce docker-compose docker-ce-cli containerd.io sudo wget
 
 # prepare files ---------------------
-mkdir -f /var/opt/mysapp
+mkdir /var/opt/myapp
 
 POSTGRESQL_URL="$1"
 ACR_NAME="$2"
@@ -28,9 +28,8 @@ Description=MyApp
 After=network-online.target
 
 [Service]
-EnvironmentFile=/etc/myapp.env
 Type=simple
-WorkingDirectory=/var/opt/mysapp
+WorkingDirectory=/var/opt/myapp
 ExecStart=docker login -u ${ACR_NAME} -p ${ACR_KEY} ${ACR_NAME}.azurecr.io && docker-compose up
 RemainAfterExit=no
 Restart=always
@@ -52,10 +51,7 @@ services:
       - '8081:8080'
     environment: 
       POSTGRESQL_URL: \"${POSTGRESQL_URL}\"
-" > /var/opt/mysapp/docker-compose.yaml
-
-# create config file
-echo "POSTGRESQL_URL=\"$1\"" > /etc/myapp.env
+" > /var/opt/myapp/docker-compose.yaml
 
 # install service
 sudo systemctl enable myapp.service

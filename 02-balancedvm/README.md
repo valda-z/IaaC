@@ -35,7 +35,7 @@ az group deployment create -g ${RG} --template-file azuredeploy.json --parameter
     postgreuser="valda" \
     postgrepassword="pwd123..." \
     rpmurl="${RPM}" \
-    artifactsLocation="https://raw.githubusercontent.com/valda-z/IaaC/master/03-vmscaleset/install.sh"
+    artifactsLocation="https://raw.githubusercontent.com/valda-z/IaaC/master/02-balancedvm/install.sh"
 
 ```
 
