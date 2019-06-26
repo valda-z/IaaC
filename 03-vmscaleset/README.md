@@ -1,6 +1,6 @@
-# Balanced set of VMs with PostgreSQL
+# VM Scale Set with PostgreSQL
 
-Deploying set of VMs with load balancer, VMs will be installed automatically by extension script. 
+Deploying VM scale set with load balancer, VMs will be installed automatically by extension script. 
 
 Installation requires prepared RPM package stored somewhere - in our case we are using Azure blob storage.
 
@@ -16,11 +16,11 @@ Final architecture picture:
 
 ```bash
 # go to directory with our experiment
-cd 02-balancedvm
+cd 03-vmscaleset
 ```
 
 ```bash
-export RG=TST_02
+export RG=TST_03
 export LOCATION=northeurope
 
 # create resource group
@@ -31,11 +31,11 @@ az group deployment create -g ${RG} --template-file azuredeploy.json --parameter
     username="valda" \
     sshkey="$(cat ~/.ssh/id_rsa.pub)" \
     vmcount="3" \
-    postgrename="valdatst02" \
+    postgrename="valdatst03" \
     postgreuser="valda" \
     postgrepassword="pwd123..." \
     rpmurl="${RPM}" \
-    artifactsLocation="https://raw.githubusercontent.com/valda-z/IaaC/master/03-vmscaleset/install.sh"
+    artifactsLocation="https://raw.githubusercontent.com/valda-z/IaaC/master/02-balancedvm/install.sh"
 
 ```
 
