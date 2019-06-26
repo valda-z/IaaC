@@ -81,7 +81,6 @@
         }
     },
     "variables": {
-        "availSet": "[concat(concat(parameters('vm'),'-as'))]",
         "lb": "[concat(concat(parameters('vm'),'-lb'))]",
         "lbIp": "[concat(concat(parameters('vm'),'-lb-ip'))]",
         "vmNic": "[concat(concat(parameters('vm'),'-nic'))]",
@@ -234,7 +233,6 @@
                 ]
             }
         },
-
         {
             "type": "Microsoft.Compute/virtualMachineScaleSets",
             "name": "[parameters('vm')]",
@@ -252,16 +250,16 @@
             },
             "properties": {
                 "upgradePolicy": {
-                "mode": "Rolling"
+                "mode": "Manual"
                 },
                 "virtualMachineProfile": {
-                    "imageReference": {
-                        "publisher": "OpenLogic",
-                        "offer": "CentOS",
-                        "sku": "7.6",
-                        "version": "latest"
-                    },
                     "storageProfile":{
+                        "imageReference": {
+                            "publisher": "OpenLogic",
+                            "offer": "CentOS",
+                            "sku": "7.6",
+                            "version": "latest"
+                        },
                         "osDisk":{
                             "createOption":"FromImage",
                             "managedDisk":{
