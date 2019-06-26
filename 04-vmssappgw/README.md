@@ -1,15 +1,15 @@
-# VM Scale Set with PostgreSQL
+# VM Scale Set balanced by Application Gateway with PostgreSQL
 
-Deploying VM scale set with load balancer, VMs will be installed automatically by extension script. 
+Deploying VM scale set with application gateway, VMs will be installed automatically by extension script. 
 
-Installation requires prepared RPM package stored somewhere - in our case we are using Azure blob storage.
+Installation is done by creating systemd service which runs docker containers with our app (SPA container and REST API for ToDoes container) orchestrated by docker-compose.
 
 Script will deploy:
 
-* Linux (CentOS) based VMs with private IP address and Network Security Group enables communication to ports 8080 
+* Linux (CentOS) based VMs with private IP address and Network Security Group enabling communication only from local VNET 
 * PostgreSQL database as service
-* automatically install and configure our simple JAVA app to run as a system service in CentOS (script `install.sh` is used for installation)
-* Load balancer with public IP address and balancing rule which sends communication from public IP address (port 80) to VMs internal IP addresses (port 8080)
+* create systemd service which runs two containers by docker-compose (myappspa and myapptodo), containers are pulled from Azure Container Registry
+* Application gateway with public IP address has deployed URL path mapping rules which are sending traffic to path `/api/todo` to myapptodo service (running on port 8081) and rest of traffic to myappspa service (running on port 8080).
 
 Final architecture picture:
 ![](arch.png)
@@ -31,7 +31,7 @@ az group deployment create -g ${RG} --template-file azuredeploy.json --parameter
     username="valda" \
     sshkey="$(cat ~/.ssh/id_rsa.pub)" \
     vmcount="3" \
-    postgrename="valdatst03" \
+    postgrename="valdatst04" \
     postgreuser="valda" \
     postgrepassword="pwd123..." \
     acrname="${ACR_NAME}" \

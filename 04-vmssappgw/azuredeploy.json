@@ -99,14 +99,16 @@
         }
     },
     "variables": {
-        "lb": "[concat(concat(parameters('vm'),'-lb'))]",
-        "lbIp": "[concat(concat(parameters('vm'),'-lb-ip'))]",
+        "appgw": "[concat(concat(parameters('vm'),'-appgw'))]",
+        "appgwIp": "[concat(concat(parameters('vm'),'-appgw-ip'))]",
         "vmNic": "[concat(concat(parameters('vm'),'-nic'))]",
         "vmNsg": "[concat(concat(parameters('vm'),'-nsg'))]",
         "vnetName": "vnet",
         "vnetAddressPrefix": "10.0.0.0/16",
         "subnetAppName": "app",
-        "subnetAppPrefix": "10.0.0.0/24",
+        "subnetAppPrefix": "10.0.10.0/24",
+        "subnetAppGWName": "appgw",
+        "subnetAppGWPrefix": "10.0.1.0/24",
         "linuxConfiguration": {
             "disablePasswordAuthentication": true,
             "ssh": {
@@ -147,6 +149,12 @@
                         "properties":{
                             "addressPrefix": "[variables('subnetAppPrefix')]"
                         }
+                    },
+                    {
+                        "name": "[variables('subnetAppGWName')]",
+                        "properties":{
+                            "addressPrefix": "[variables('subnetAppGWPrefix')]"
+                        }
                     }
                 ]
             }
@@ -154,79 +162,139 @@
         {
             "apiVersion": "2019-02-01",
             "type": "Microsoft.Network/publicIPAddresses",
-            "name": "[variables('lbIp')]",
+            "name": "[variables('appgwIp')]",
             "sku":{
-                "name": "Basic"
+                "name": "Standard"
             },
             "location": "[parameters('location')]",
             "properties": {
-              "publicIPAllocationMethod": "Dynamic"
+              "publicIPAllocationMethod": "Static"
             }
         },
         {
             "apiVersion": "2019-04-01",
-            "name": "[variables('lb')]",
-            "type": "Microsoft.Network/loadBalancers",
-            "sku":{
-                "name":"Basic"
-            },
+            "name": "[variables('appgw')]",
+            "type": "Microsoft.Network/applicationGateways",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Network/publicIPAddresses/', variables('lbIp'))]"
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('appgwIp'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
             ],
-            "properties": {
-                "frontendIPConfigurations": [
-                {
-                    "name": "LoadBalancerFrontend",
-                    "properties": {
-                        "publicIPAddress": {
-                            "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('lbIp'))]"
-                        }
-                    }
-                }
-                ],
-                "backendAddressPools": [
+            "properties":{
+                "sku":{
+                    "tier":"Standard_v2",
+                    "name":"Standard_v2"
+                },
+                "autoscaleConfiguration":{
+                    "minCapacity": 2,
+                    "maxCapacity": 4
+                },
+                "gatewayIPConfigurations":[
                     {
-                        "name": "MyAppBackend"
-                    }
-                ],
-                "loadBalancingRules":[
-                    {
-                        "name": "MyAppRule",
+                        "name": "appGwConfig",
                         "properties":{
-                            "frontendIPConfiguration":{
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('lb')), '/frontendIPConfigurations/LoadBalancerFrontend')]"
-                            },
-                            "frontendPort": 80,
-                            "backendPort": 8080,
-                            "enableFloatingIP": false,
-                            "idleTimeoutInMinutes": 4,
-                            "protocol": "Tcp",
-                            "enableTcpReset": false,
-                            "loadDistribution": "Default",
-                            "backendAddressPool":{
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('lb')), '/backendAddressPools/MyAppBackend')]"
-                            },
-                            "probe":{
-                                "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('lb')), '/probes/MyAppProbe')]"
+                            "subnet":{
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetAppGWName'))]"                            
                             }
                         }
                     }
                 ],
-                "probes":[
+                "backendAddressPools":[
                     {
-                        "name": "MyAppProbe",
+                        "name": "MyAppBackend"
+                    }
+                ],
+                "frontendIPConfigurations":[
+                    {
+                        "name": "MyAppFrontendIP",
                         "properties":{
-                            "protocol": "Http",
+                            "publicIPAddress":{
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('appgwIp'))]"
+                            }
+                        }
+                    }
+                ],
+                "frontendPorts":[
+                    {
+                        "name": "MyAppPort",
+                        "properties":{
+                            "port": 80
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection":[
+                    {
+                        "name": "spabackend",
+                        "properties":{
                             "port": 8080,
-                            "intervalInSeconds": 5,
-                            "numberOfProbes": 2,
-                            "requestPath": "/"
-                        }       
+                            "protocol":"Http"                        }
+                    },
+                    {
+                        "name": "todobackend",
+                        "properties":{
+                            "port": 8081,
+                            "protocol":"Http"                        }
+                    }
+                ],
+                "httpListeners":[
+                    {
+                        "name": "MyAppListener",
+                        "properties":{
+                            "protocol":"Http",
+                            "frontendIPConfiguration":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', variables('appgw'), 'MyAppFrontendIP')]"
+                            },
+                            "frontendPort":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts', variables('appgw'), 'MyAppPort')]"
+                            }
+                        }
+                    }
+                ],
+                "requestRoutingRules":[
+                    {
+                        "name": "MyAppRule",
+                        "properties":{
+                            "ruleType":"PathBasedRouting",
+                            "httpListener":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', variables('appgw'), 'MyAppListener')]"
+                            },
+                            "urlPathMap":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/urlPathMaps', variables('appgw'), 'MyApp')]"
+                            }
+                        }
+                    }
+                ],
+                "urlPathMaps":[
+                    {
+                        "name": "MyApp",
+                        "properties":{
+                            "defaultBackendAddressPool":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
+                            },
+                            "defaultBackendHttpSettings":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appgw'), 'spabackend')]"
+                            },
+                            "pathRules":[
+                                {
+                                    "name": "todo",
+                                    "properties":{
+                                        "backendAddressPool":{
+                                            "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
+                                        },
+                                        "backendHttpSettings":{
+                                            "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appgw'), 'todobackend')]"
+                                        },
+                                        "paths":[
+                                            "/api/todo"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
                     }
                 ]
             }
-        },        
+        },
         {
             "name": "[variables('vmNsg')]",
             "type": "Microsoft.Network/networkSecurityGroups",
@@ -235,19 +303,6 @@
             "comments": "Network Security Group (NSG) for your Primary NIC",
             "properties": {
               "securityRules": [
-                    {
-                    "name": "http-8080",
-                    "properties": {
-                            "priority": 1000,
-                            "sourceAddressPrefix": "*",
-                            "protocol": "Tcp",
-                            "destinationPortRange": "8080",
-                            "access": "Allow",
-                            "direction": "Inbound",
-                            "sourcePortRange": "*",
-                            "destinationAddressPrefix": "*"
-                        }
-                    }  
                 ]
             }
         },
@@ -257,7 +312,7 @@
             "location": "[parameters('location')]",
             "apiVersion": "2018-10-01",
             "dependsOn": [
-                "[concat('Microsoft.Network/loadBalancers/', variables('lb'))]",
+                "[concat('Microsoft.Network/applicationGateways/', variables('appgw'))]",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
                 "[concat('Microsoft.Network/networkSecurityGroups/', variables('vmNsg'))]"
             ],
@@ -306,9 +361,9 @@
                                                 "subnet": {
                                                     "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetAppName'))]"
                                                 },
-                                                "loadBalancerBackendAddressPools":[
+                                                "applicationGatewayBackendAddressPools":[
                                                     {
-                                                        "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('lb')),'/backendAddressPools/MyAppBackend')]"
+                                                        "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
                                                     }
                                                 ]
                                             }
