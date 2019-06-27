@@ -42,5 +42,5 @@ az group deployment create -g ${RG} --template-file azuredeploy.json --parameter
 
 ```
 
-Now you can use Azure portal and navigate to your Resource group, on the `load balancer` resource you can grab public IP address and try to connect to our JAVA web application on standard http port 80.
+Now you can use Azure portal and navigate to your Resource group, on the `Application Balancer` resource you can grab public IP address and try to connect to our web application on standard http port 80.
 `http://<YOUR_IP_ADDRESS>`
