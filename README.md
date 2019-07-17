@@ -139,11 +139,10 @@ export RPM=\"${RPMBLOB}?${RPMBLOBSAS}\""
 
 ### [04 - VM Scale Set with Application Gateway hosts containerized apps](04-vmssappgw)
 
+### [05 - VM Scale Set with Application Gateway hosts containerized apps + KeyVault for storing secrets](05-vmssappgw-keyvault)
+
 ## Useful links
 
-openssl rand -base64 30
-
-password
 https://github.com/Azure/azure-quickstart-templates/tree/master/101-vm-secure-password
 
 https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/active-directory/managed-identities-azure-resources/how-to-manage-ua-identity-arm.md
