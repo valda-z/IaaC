@@ -5,13 +5,19 @@
 # parameters:
 #   1) POSTGRESQL_URL
 #   2) ACR_NAME
-#   3) ACR_KEY
-#   4) SPA_IMAGE
-#   5) TODO_IMAGE
+#   3) IDENTITYID
+#   4) KEYVAULT_NAME
+#   5) SPA_IMAGE
+#   6) TODO_IMAGE
 ######################################################
 
+# install az CLI
+sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
+sudo sh -c 'echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/azure-cli.repo'
+sudo yum install -y azure-cli
+
 # install dependencies - docker
-yum install -y docker sudo wget epel-release
+sudo yum install -y docker sudo wget epel-release jq
 sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
@@ -24,9 +30,10 @@ mkdir -p /var/opt/myapp
 
 POSTGRESQL_URL="$1"
 ACR_NAME="$2"
-ACR_KEY="$3"
-SPA_IMAGE="$4"
-TODO_IMAGE="$5"
+IDENTITYID="$3"
+KEYVAULT_NAME="$4"
+SPA_IMAGE="$5"
+TODO_IMAGE="$6"
 
 echo "
 [Unit]
@@ -47,7 +54,13 @@ WantedBy=multi-user.target
 
 echo "#!/bin/bash
 cd /var/opt/myapp
-/usr/bin/docker login -u ${ACR_NAME} -p ${ACR_KEY} ${ACR_NAME}.azurecr.io
+# login to azure
+az login --identity --username "${IDENTITYID}"
+# login to ACR
+az acr login --name valdadevop001acr
+# collect PostgreSQL password
+POSTGRESPWD="$(az keyvault secret show -n postgres-secret --vault-name KEYVAULT_NAME --query 'value' -o tsv)";
+export POSTGRESQL_URL=\"${POSTGRESQL_URL}&password=\${POSTGRESPWD}\"
 /usr/bin/docker-compose up
 " > /var/opt/myapp/run.sh
 chmod +x /var/opt/myapp/run.sh
@@ -63,7 +76,7 @@ services:
     ports:
       - '8081:8080'
     environment:
-      POSTGRESQL_URL: \"${POSTGRESQL_URL}\"
+      POSTGRESQL_URL: \${POSTGRESQL_URL}
 " > /var/opt/myapp/docker-compose.yaml
 
 # install service

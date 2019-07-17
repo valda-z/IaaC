@@ -73,12 +73,6 @@
                 "description": "ACR name"
               }
         },
-        "acrkey":{
-            "type": "string",
-            "metadata": {
-                "description": "ACR key"
-              }
-        },
         "acrimgspa":{
             "type": "string",
             "metadata": {
@@ -91,24 +85,34 @@
                 "description": "container image name for TODO app"
               }
         },
+        "identityid":{
+            "type": "string",
+            "metadata": {
+                "description": "User managed identity id"
+              }
+        },
+        "identityprincipalid":{
+            "type": "string",
+            "metadata": {
+                "description": "User managed identity principal id"
+              }
+        },
+        "keyvault":{
+            "type": "string",
+            "metadata": {
+                "description": "keyvault name containing postgresql password"
+              }
+        },
         "artifactsLocation":{
             "type": "string",
             "metadata": {
                 "description": "Install script location"
               }
         },
-        "appgwPFX":{
+        "appgwCertSID":{
             "type": "string",
-            "defaultValue": "MIIJ4QIBAzCCCacGCSqGSIb3DQEHAaCCCZgEggmUMIIJkDCCBEcGCSqGSIb3DQEHBqCCBDgwggQ0AgEAMIIELQYJKoZIhvcNAQcBMBwGCiqGSIb3DQEMAQYwDgQIt+cpu9C9UaQCAggAgIIEAG9yaK2LaggAnU21M3ywbqdWhqU4UKFQhttnKTi5qs0lzh7J37c0JrT1rUSIa+aoTAyuauxlAycd5mM0RU9tnG5i8Mrkw/aCZITSCOibOthuwPcNf0vWW4zocfMtFhRwo12nhHqzjRQvqi88D53azWbL60BDjviH+Ft/4aDn/R3NhisTi2voh4xu8rlDj4/e7t1eNemursoCtrvExlmowucCYqi6XmZykTRyDEr1bkaLjKkIXJ7MrjyZRR4f3SZq3mZ0dfmCJAfVJL8/WD6sGPvLiNI3XqSEGsdfRxFLzQ+89WJ7B90dcWUz6p9aDPc2aHCmP4xV1/BhJ5Fk1cGC+i9qFHNBwrksmDYBeV2Yhd3jQEOrRAryEWG1przdgE1otirQir9mvM5R9/LfRXhC58lyNl+b/fF4qGJnjpXYh41gkCmI74/Eiv73nru1+/kFeYEdXt4AhVFJBqCJ9WL50OzgOFoPykxHOQEv1wQR+M5ckHdQsM9+RAEo344ENoZOej+bqsEa1zwfMCIqzLyniTVlr8D7ppf+GUv6ChI453TZYirE0VioGmhrcoBEhtawG6lWGScJVeRcOPggNKoFHzvapVJYuXZxa33NgKfOpFS+QaXlex4PDg0vBXDraJKXdL+f4nnZZHCqoJDsSqbPvUG0VuA56d3y2mCH0pDg2Un+eZPFn57HwnyG9CUl4tLRrP06dhd62A7yT7RVM1qFXDwEBexn4UkmyKMnxYSdFwaycqcGW3Kxj5VU55XQf8kMuEjezrBVyLEnEVugncr0bu2caMUBQZmND0S1Y/B33RPQT7HzuSO2Bn55uhk5tRe6HIXbtzsClF98jujQRUkq3sFa5HRmfal/Pm5p3+lbb2FyPbJF+48HhvNo7SUTWc+d3u3Y0RVT2vbchA1H2B3wwck8yKnsBdDpElx0z874OhgMmsgv7pelA2w4imeWQnEi0YqI9SS1lGqP0PEzlukW3vBuxtxOIKfEYPDAePi8lL/coOb4AFzQM1F2q2Nez+zsznzXn35rQcXOIQEjCvgHVH/jXzLvHse7bBy3MoUSoQ1t0favAgTVyJd12Oqy+lloiUDJhkDknxwdfB+2ZUFClY/7YCcUfgo/z9JAhkUJE5dtB3UMbX0uDwetgrmtQAW+kpRCPQh2R1FmfptVr9bDENIP7KtbAdIMK5Z+LhxpLW8y3exJD5I6zhtUNa8Gk8AAwGFc3AJ7xD1BQZxzqXYL5fss5kOvCm7KKuy285nfD6jjP2yKafdpuxVtJyFN2Tbe4ysP34gSVbgzxUB7THNnkDHut4aksg8X9y0jR36YCxuzSHBtBb+6K/FZV+w9COll9Ip+UBTItFhq2gZ0bQZbP0IwggVBBgkqhkiG9w0BBwGgggUyBIIFLjCCBSowggUmBgsqhkiG9w0BDAoBAqCCBO4wggTqMBwGCiqGSIb3DQEMAQMwDgQIt3K9jniIL30CAggABIIEyA8SCFUWlt/Kh8EEW1oFzNq28S4j6eSI3juczTfNX0C1u7iWLWEax9YHZHQHkobIbVwEC85DW8t+n7qOoH/+oEBXItS7jB4xo5Ga+PuJfjiWyDzd+AlwRMfoPf58wHz8x0W0cB0983uwNy56ONJ8IL4TvHWs5Fg4M3lY9GyOAdCF33vzGQ73eoEBbY3+DCCKs061fSQze/8qhPgqBi85IYmABn9LKZxZTGJhMNF0OVoUKykZImUT5RzpGqVy4f8qMIifEcLEhobySbKdxdV1N5IRkZKWjY27pZWhbFwtBcjpXAoXTTVQHORicPX2uKKO3miDPWkiftrvoXWmoPSUfTLWk7bukdWIC/xj9wymwwCtb65/Z52OCBNG+B5eD/OgHvXsz1MerH4WYZxbJ2oABsAo/4Z0VHuX+DLH7Xh0MW5EwDZntPzdmxg4D7FaeU4iGEIIR8Ni6yjJdjh8/i35F82EH11v4QU7Vp7GpSQzTGVYEnBefU7xeE/OmHChYw0cLKyCXOgkf1VhP7LO0QwdORXsFcqLhzHffezODbufPJSfptJT0rT0Uq5NkAW0ansY4muJvROvLT6jWoZPz4Frk3GufnbBtOq+WZjyQFQ88ZykGV/b5Lsx5lNp+z8cGj6dHqYaPDrgWo9Ej4GubT0XNOtPQscxhMcH3C5GXfE6KkihwjLrdWiHX8YtThn5qb3oqUP6PGb7RAQX1jNuMfIMaTo3otrvH7b+yINspQV8s9WxAgDj/LdJ5rJkrux56gEczB2sapTVRUmYX/YiSa4eVSXqxKx2rHwB+QuEBq5updUE8bDPOUgMV6cipGK7h1ZloPiyOCGVClvZ/A+iKcF4OHkYyJ51TNu0htiF0bIkVV3W+3ZqXKXQCx0Ak/q3BCr5uhp0xrI6juNl8Sm8z7o8b+wa04WepggytsFdpZ3CcmsdxhYFA3eVdMVrPMlEEcSo4PoJgo1Q/Rs6LSpp9CoE3GTmTi4a6H567ZdRWugbENerE7Y7ljhOYs6yh8TdqTOohe+zwJ8HSupDen3DAyNouFGarWiamveeYO3i2+xbXIBdv7L+MexFfPMwfPjbBA0quKF1auyltygKCurp0Ac4iJ9Q6X6+mPPSUPkF5xsryRCdk6PgJWbyLKv80Pn34sD/TMWusWEkvt67Abah0RvBmNE7mwFKexp8kEhOo51oaVN2g+04/OhqBKXZ59Drj6SGLdyt/XIFHWBnukROhI9yoKhxKB9I/eBWiQssZH0g4TIVPqC4JnkaD9lkJOM60VmIXwQysHbz8HbY8YBSYCCQI8uZkYu1iq2UL1maLv2yEXjC8y94ow/wZ9cmdW8spKSOdD0Y/g9fETix5NA9xhwCOryQ6UZtPidfAj+knMPHM5OYq5ig8hVDnP4s4dUqCafPJwfBIn5XxTcMyPPStJ9V0SnAaPVi7DwvqGKXlM1HINklZMardxHl0stYM/PQsfp2sCm2vuy6wc0Di6WGjVq7RSFuZbau1MgXHrT75N3obB2gX7bMpvY8u9h4HyGBU8O0DQpJBDc5tRnIHqMylCWS3qTXXHZxn3idEoojVUYQlXFroHcluy+nsR9iV50nbyxxBtonvcKu0ZQwjuXsDDv3RrIGpwghKDQtFzElMCMGCSqGSIb3DQEJFTEWBBQ2DeQO+LSJJOz81esQo2hkEUXnQDAxMCEwCQYFKw4DAhoFAAQU6YCtx0WWot5/3ncIV7m9iPBRmX0ECC1AF+teg4A3AgIIAA==",
             "metadata": {
-                "description": "SSL certificate - PFX file encoded in base64"
-              }
-        },
-        "appgwPFXPassword":{
-            "type": "string",
-            "defaultValue": "pwd123...",
-            "metadata": {
-                "description": "SSL certificate password"
+                "description": "SSL certificate SID in keyvault"
               }
         }
     },
@@ -143,7 +147,7 @@
             "tier":"Basic"
         },
         "postgresVersion": "9.6",
-        "postgresurl": "[concat('jdbc:postgresql://',parameters('postgrename'),'.postgres.database.azure.com:5432/',variables('postgresDB'),'?user=',parameters('postgreuser'),'@',parameters('postgrename'),'&password=',parameters('postgrepassword'),'&sslmode=require')]"
+        "postgresurl": "[concat('jdbc:postgresql://',parameters('postgrename'),'.postgres.database.azure.com:5432/',variables('postgresDB'),'?user=',parameters('postgreuser'),'@',parameters('postgrename'),'&sslmode=require')]"
     },
     "resources": [
         {
@@ -194,6 +198,12 @@
                 "[concat('Microsoft.Network/publicIPAddresses/', variables('appgwIp'))]",
                 "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
             ],
+            "identity":{
+                "type":"UserAssigned",
+                "userAssignedIdentities":{
+                    "[parameters('identityid')]": {}
+                }
+            },
             "properties":{
                 "sku":{
                     "tier":"Standard_v2",
@@ -232,8 +242,7 @@
                     {
                         "name": "MyAppCert",
                         "properties":{
-                            "data": "[parameters('appgwPFX')]",
-                            "password": "[parameters('appgwPFXPassword')]"
+                            "keyVaultSecretId": "[parameters('appgwCertSID')]"
                         }
                     }
                 ],
@@ -256,15 +265,13 @@
                         "name": "spabackend",
                         "properties":{
                             "port": 8080,
-                            "protocol":"Http"                        
-                        }
+                            "protocol":"Http"                        }
                     },
                     {
                         "name": "todobackend",
                         "properties":{
                             "port": 8081,
-                            "protocol":"Http"                        
-                        }
+                            "protocol":"Http"                        }
                     }
                 ],
                 "httpListeners":[
@@ -379,6 +386,12 @@
                 "tier": "Standard",
                 "capacity": "[parameters('vmcount')]"
             },
+            "identity":{
+                "type":"UserAssigned",
+                "userAssignedIdentities":{
+                    "[parameters('identityid')]": {}
+                }
+            },            
             "properties": {
                 "upgradePolicy": {
                 "mode": "Manual"
@@ -444,7 +457,7 @@
                                         "fileUris": [
                                             "[parameters('artifactsLocation')]"
                                         ],
-                                        "commandToExecute": "[concat('sudo bash install.sh \"',variables('postgresurl'),'\" \"',parameters('acrname'),'\" \"',parameters('acrkey'),'\" \"',parameters('acrimgspa'),'\" \"',parameters('acrimgtodo'),'\"')]"
+                                        "commandToExecute": "[concat('sudo bash install.sh \"',variables('postgresurl'),'\" \"',parameters('acrname'),'\" \"',parameters('identityprincipalid'),'\" \"',parameters('keyvault'),'\" \"',parameters('acrimgspa'),'\" \"',parameters('acrimgtodo'),'\"')]"
                                     }
                                 }
                             }

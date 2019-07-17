@@ -125,6 +125,7 @@ RPMBLOBSAS=$(az storage blob generate-sas --account-name ${DEVOPS_BLOBSTORAGE_NA
 echo "export ACR_NAME=${DEVOPS_ACR_NAME}
 export ACR_URL=${ACR_URL}
 export ACR_KEY=${ACR_KEY}
+export ACR_ID=$(az acr show --resource-group ${DEVOPS_RG} --name ${DEVOPS_ACR_NAME} --query id --output tsv)
 export RPM=\"${RPMBLOB}?${RPMBLOBSAS}\""
 ```
 
