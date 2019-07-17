@@ -26,7 +26,7 @@ cd 05-vmssappgw-keyvault
 export RG=TST_05
 export LOCATION=northeurope
 # please use your unique name for keyvault!
-export KEYVAULT=valdakv05
+export KEYVAULT=valdakv05x001
 
 # create resource group
 az group create --location ${LOCATION} --name ${RG}
@@ -89,3 +89,5 @@ Now you can use Azure portal and navigate to your Resource group, on the `Applic
 `http://<YOUR_IP_ADDRESS>`
 If it works you can also check if SSL connection to our application is working on address:
 `https://<YOUR_IP_ADDRESS>`
+
+
