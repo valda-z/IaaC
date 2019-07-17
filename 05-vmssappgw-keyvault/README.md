@@ -9,7 +9,7 @@ All security assets stored in KeyVault service (password for SQL server and SSL 
 Script will deploy:
 
 * Linux (CentOS) based VMs with private IP address and Network Security Group enabling communication only from local VNET 
-* PostgreSQL database as service
+* PostgreSQL database as service, PostgreSQL connected directly to VLAN via Service End Point.
 * create systemd service which runs two containers by docker-compose (myappspa and myapptodo), containers are pulled from Azure Container Registry
 * Application gateway with public IP address has deployed URL path mapping rules which are sending traffic to path `/api/todo` to myapptodo service (running on port 8081) and rest of traffic to myappspa service (running on port 8080).
 * Application gateway will listen on ports 80 (for standard HTTP) and 443 (for HTTPS), we will use self sign certificate in base64 encoding, certificate and password are stored in template like default parameters.

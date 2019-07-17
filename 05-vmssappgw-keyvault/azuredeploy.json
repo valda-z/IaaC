@@ -140,11 +140,11 @@
         },
         "postgresDB": "todo",    
         "postgresSKU": {
-            "name": "B_Gen5_1",
+            "name": "GP_Gen5_2",
             "family": "Gen5",
             "capacity": "",
             "size": "5120",
-            "tier":"Basic"
+            "tier":"GeneralPurpose"
         },
         "postgresVersion": "9.6",
         "postgresurl": "[concat('jdbc:postgresql://',parameters('postgrename'),'.postgres.database.azure.com:5432/',variables('postgresDB'),'?user=',parameters('postgreuser'),'@',parameters('postgrename'),'&sslmode=require')]"
@@ -165,7 +165,15 @@
                     {
                         "name": "[variables('subnetAppName')]",
                         "properties":{
-                            "addressPrefix": "[variables('subnetAppPrefix')]"
+                            "addressPrefix": "[variables('subnetAppPrefix')]",
+                            "serviceEndpoints":[
+                                {
+                                    "service": "Microsoft.SQL",
+                                    "locations": [
+                                        "[parameters('location')]"
+                                    ]
+                                }
+                            ]
                         }
                     },
                     {
@@ -480,20 +488,10 @@
                 "sslEnforcement": "Disabled",
                 "createMode": "Default"
             },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
+            ],
             "resources": [
-                {
-                  "type":"firewallRules",
-                  "apiVersion": "2017-12-01",
-                  "dependsOn": [
-                      "[concat('Microsoft.DBforPostgreSQL/servers/', parameters('postgrename'))]"
-                  ],
-                  "location": "[parameters('location')]",
-                  "name": "AllowAzureIPs",
-                  "properties": {
-                      "startIpAddress": "0.0.0.0",
-                      "endIpAddress": "0.0.0.0"
-                  }
-              },
                 {
                     "name": "[variables('postgresDB')]",
                     "type": "databases",
@@ -501,6 +499,17 @@
                     "properties": {
                         "charset": "utf8",
                         "collation": "English_United States.1252"
+                    },
+                    "dependsOn": [
+                        "[concat('Microsoft.DBforPostgreSQL/servers/', parameters('postgrename'))]"
+                    ]
+                },
+                {
+                    "name": "[variables('postgresDB')]",
+                    "type": "virtualNetworkRules",
+                    "apiVersion": "2017-12-01",
+                    "properties":{
+                        "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetAppName'))]"
                     },
                     "dependsOn": [
                         "[concat('Microsoft.DBforPostgreSQL/servers/', parameters('postgrename'))]"
