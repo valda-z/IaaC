@@ -40,6 +40,9 @@ az keyvault create --name ${KEYVAULT}                       \
                    --enabled-for-template-deployment true   \
                    --sku standard
 export KEYVAULTID="$(az keyvault show -n ${KEYVAULT} -g ${RG} --query "id" -o tsv)"
+# enable soft delete on keyvault
+az keyvault update --name ${KEYVAULT} --resource-group ${RG} \
+    --enable-purge-protection true --enable-soft-delete true
 
 # generate random password for PostgreSQL and store it in keyvault (24 chars)
 az keyvault secret set --name postgres-secret           \
