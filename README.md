@@ -1,6 +1,6 @@
 # IaaC
 
-This LAN materials demonstrates few possible scenarios how to automatically deploy and operate infrastructure and applications.
+This LAB materials demonstrates few possible scenarios how to automatically deploy and operate infrastructure and applications.
 Our experiments are using JAVA based application and for persistent layer we will use PostgreSQL database, in advanced scenarios we will use instead of simple JAVA app two docker containers (first one with single page HTML5 app and second with JAVA microservice REST API).
 
 ## Preparation steps
