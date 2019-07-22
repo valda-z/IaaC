@@ -1,0 +1,523 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "vm":{
+            "type": "string",
+            "defaultValue": "app",
+            "metadata": {
+                "description": "VM name"
+              }
+          },
+        "vmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_DS1_v2",
+                "Standard_DS2_v2",
+                "Standard_DS3_v2",
+                "Standard_DS4_v2",
+                "Standard_D2s_v3",
+                "Standard_D4s_v3"
+            ],
+            "defaultValue": "Standard_DS1_v2",
+            "metadata": {
+              "description": "Size of vm"
+            }
+        },
+        "vmcount": {
+            "type": "int",
+            "metadata": {
+                "description": "How many VM we want to provision"
+              }
+        },
+        "username": {
+            "type": "string",
+            "metadata": {
+                "description": "VM user name"
+              }
+        },
+        "sshkey":{
+            "type": "string",
+            "metadata": {
+                "description": "VM users SSH public key"
+              }
+        },
+        "postgrename":{
+            "type": "string",
+            "metadata": {
+                "description": "PostgreSQL name"
+              }
+        },
+        "postgreuser":{
+            "type": "string",
+            "metadata": {
+                "description": "PostgreSQL username"
+              }
+        },
+        "postgrepassword":{
+            "type": "securestring",
+            "metadata": {
+                "description": "PostgreSQL password"
+              }
+        },
+        "acrname":{
+            "type": "string",
+            "metadata": {
+                "description": "ACR name"
+              }
+        },
+        "acrimgspa":{
+            "type": "string",
+            "metadata": {
+                "description": "container image name for SPA app"
+              }
+        },
+        "acrimgtodo":{
+            "type": "string",
+            "metadata": {
+                "description": "container image name for TODO app"
+              }
+        },
+        "identityid":{
+            "type": "string",
+            "metadata": {
+                "description": "User managed identity id"
+              }
+        },
+        "identityprincipalid":{
+            "type": "string",
+            "metadata": {
+                "description": "User managed identity principal id"
+              }
+        },
+        "keyvault":{
+            "type": "string",
+            "metadata": {
+                "description": "keyvault name containing postgresql password"
+              }
+        },
+        "artifactsLocation":{
+            "type": "string",
+            "metadata": {
+                "description": "Install script location"
+              }
+        },
+        "appgwCertSID":{
+            "type": "string",
+            "metadata": {
+                "description": "SSL certificate SID in keyvault"
+              }
+        }
+    },
+    "variables": {
+        "appgw": "[concat(concat(parameters('vm'),'-appgw'))]",
+        "appgwIp": "[concat(concat(parameters('vm'),'-appgw-ip'))]",
+        "vmNic": "[concat(concat(parameters('vm'),'-nic'))]",
+        "vmNsg": "[concat(concat(parameters('vm'),'-nsg'))]",
+        "vnetName": "vnet",
+        "vnetAddressPrefix": "10.0.0.0/16",
+        "subnetAppName": "app",
+        "subnetAppPrefix": "10.0.10.0/24",
+        "subnetAppGWName": "appgw",
+        "subnetAppGWPrefix": "10.0.1.0/24",
+        "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [
+                    {
+                        "path": "[concat('/home/', parameters('username'), '/.ssh/authorized_keys')]",
+                        "keyData": "[parameters('sshkey')]"
+                    }
+                ]
+            }
+        },
+        "postgresDB": "todo",    
+        "postgresSKU": {
+            "name": "GP_Gen5_2",
+            "family": "Gen5",
+            "capacity": "",
+            "size": "5120",
+            "tier":"GeneralPurpose"
+        },
+        "postgresVersion": "9.6",
+        "postgresurl": "[concat('jdbc:postgresql://',parameters('postgrename'),'.postgres.database.azure.com:5432/',variables('postgresDB'),'?user=',parameters('postgreuser'),'@',parameters('postgrename'),'&sslmode=require')]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2019-02-01",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[parameters('location')]",
+            "name": "[variables('vnetName')]",
+            "properties": {
+                "addressSpace":{
+                    "addressPrefixes":[
+                        "[variables('vnetAddressPrefix')]"
+                    ]
+                },
+                "subnets":[
+                    {
+                        "name": "[variables('subnetAppName')]",
+                        "properties":{
+                            "addressPrefix": "[variables('subnetAppPrefix')]",
+                            "serviceEndpoints":[
+                                {
+                                    "service": "Microsoft.SQL",
+                                    "locations": [
+                                        "[parameters('location')]"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "[variables('subnetAppGWName')]",
+                        "properties":{
+                            "addressPrefix": "[variables('subnetAppGWPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2019-02-01",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('appgwIp')]",
+            "sku":{
+                "name": "Standard"
+            },
+            "location": "[parameters('location')]",
+            "properties": {
+              "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
+            "apiVersion": "2019-04-01",
+            "name": "[variables('appgw')]",
+            "type": "Microsoft.Network/applicationGateways",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('appgwIp'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
+            ],
+            "identity":{
+                "type":"UserAssigned",
+                "userAssignedIdentities":{
+                    "[parameters('identityid')]": {}
+                }
+            },
+            "properties":{
+                "sku":{
+                    "tier":"Standard_v2",
+                    "name":"Standard_v2"
+                },
+                "autoscaleConfiguration":{
+                    "minCapacity": 2,
+                    "maxCapacity": 4
+                },
+                "gatewayIPConfigurations":[
+                    {
+                        "name": "appGwConfig",
+                        "properties":{
+                            "subnet":{
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetAppGWName'))]"                            
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools":[
+                    {
+                        "name": "MyAppBackend"
+                    }
+                ],
+                "frontendIPConfigurations":[
+                    {
+                        "name": "MyAppFrontendIP",
+                        "properties":{
+                            "publicIPAddress":{
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('appgwIp'))]"
+                            }
+                        }
+                    }
+                ],
+                "sslCertificates":[
+                    {
+                        "name": "MyAppCert",
+                        "properties":{
+                            "keyVaultSecretId": "[parameters('appgwCertSID')]"
+                        }
+                    }
+                ],
+                "frontendPorts":[
+                    {
+                        "name": "MyAppPort",
+                        "properties":{
+                            "port": 80
+                        }
+                    },
+                    {
+                        "name": "MyAppPortSSL",
+                        "properties":{
+                            "port": 443
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection":[
+                    {
+                        "name": "spabackend",
+                        "properties":{
+                            "port": 8080,
+                            "protocol":"Http"                        }
+                    },
+                    {
+                        "name": "todobackend",
+                        "properties":{
+                            "port": 8081,
+                            "protocol":"Http"                        }
+                    }
+                ],
+                "httpListeners":[
+                    {
+                        "name": "MyAppListener",
+                        "properties":{
+                            "protocol":"Http",
+                            "frontendIPConfiguration":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', variables('appgw'), 'MyAppFrontendIP')]"
+                            },
+                            "frontendPort":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts', variables('appgw'), 'MyAppPort')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "MyAppListenerSSL",
+                        "properties":{
+                            "protocol":"Https",
+                            "frontendIPConfiguration":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', variables('appgw'), 'MyAppFrontendIP')]"
+                            },
+                            "frontendPort":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts', variables('appgw'), 'MyAppPortSSL')]"
+                            },
+                            "sslCertificate":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appgw'), 'MyAppCert')]"
+                            }
+                        }
+                    }
+                ],
+                "requestRoutingRules":[
+                    {
+                        "name": "MyAppRule",
+                        "properties":{
+                            "ruleType":"PathBasedRouting",
+                            "httpListener":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', variables('appgw'), 'MyAppListener')]"
+                            },
+                            "urlPathMap":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/urlPathMaps', variables('appgw'), 'MyApp')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "MyAppRuleSSL",
+                        "properties":{
+                            "ruleType":"PathBasedRouting",
+                            "httpListener":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', variables('appgw'), 'MyAppListenerSSL')]"
+                            },
+                            "urlPathMap":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/urlPathMaps', variables('appgw'), 'MyApp')]"
+                            }
+                        }
+                    }
+                ],
+                "urlPathMaps":[
+                    {
+                        "name": "MyApp",
+                        "properties":{
+                            "defaultBackendAddressPool":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
+                            },
+                            "defaultBackendHttpSettings":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appgw'), 'spabackend')]"
+                            },
+                            "pathRules":[
+                                {
+                                    "name": "todo",
+                                    "properties":{
+                                        "backendAddressPool":{
+                                            "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
+                                        },
+                                        "backendHttpSettings":{
+                                            "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appgw'), 'todobackend')]"
+                                        },
+                                        "paths":[
+                                            "/api/todo"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('vmNsg')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-02-01",
+            "location": "[parameters('location')]",
+            "comments": "Network Security Group (NSG) for your Primary NIC",
+            "properties": {
+              "securityRules": [
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachineScaleSets",
+            "name": "[parameters('vm')]",
+            "location": "[parameters('location')]",
+            "apiVersion": "2018-10-01",
+            "dependsOn": [
+                "[concat('Microsoft.Network/applicationGateways/', variables('appgw'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('vmNsg'))]"
+            ],
+            "sku": {
+                "name": "[parameters('vmSize')]",
+                "tier": "Standard",
+                "capacity": "[parameters('vmcount')]"
+            },
+            "identity":{
+                "type":"UserAssigned",
+                "userAssignedIdentities":{
+                    "[parameters('identityid')]": {}
+                }
+            },            
+            "properties": {
+                "upgradePolicy": {
+                "mode": "Manual"
+                },
+                "virtualMachineProfile": {
+                    "storageProfile":{
+                        "imageReference": {
+                            "publisher": "OpenLogic",
+                            "offer": "CentOS",
+                            "sku": "7.6",
+                            "version": "latest"
+                        },
+                        "osDisk":{
+                            "createOption":"FromImage",
+                            "managedDisk":{
+                                "storageAccountType":"Premium_LRS"
+                            }
+                        }
+                    },
+                    "osProfile": {
+                        "computerNamePrefix": "[parameters('vm')]",
+                        "adminUsername": "[parameters('username')]",
+                        "linuxConfiguration": "[variables('linuxConfiguration')]"
+                    },
+                    "networkProfile": {
+                        "networkInterfaceConfigurations": [
+                            {
+                                "name": "[variables('vmNic')]",
+                                "properties": {
+                                    "primary": true,
+                                    "networkSecurityGroup": {
+                                        "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('vmNsg'))]"
+                                    },                    
+                                    "ipConfigurations": [
+                                        {
+                                            "name": "[concat(variables('vmNic'),'-ipconfig')]",
+                                            "properties": {
+                                                "subnet": {
+                                                    "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetAppName'))]"
+                                                },
+                                                "applicationGatewayBackendAddressPools":[
+                                                    {
+                                                        "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    },
+                    "extensionProfile": {
+                        "extensions": [
+                            {
+                                "name": "myappext",
+                                "properties": {
+                                    "publisher": "Microsoft.Azure.Extensions",
+                                    "type": "CustomScript",
+                                    "typeHandlerVersion": "2.0",
+                                    "autoUpgradeMinorVersion": true,
+                                    "settings": {
+                                        "fileUris": [
+                                            "[parameters('artifactsLocation')]"
+                                        ],
+                                        "commandToExecute": "[concat('sudo bash install.sh \"',variables('postgresurl'),'\" \"',parameters('acrname'),'\" \"',parameters('identityprincipalid'),'\" \"',parameters('keyvault'),'\" \"',parameters('acrimgspa'),'\" \"',parameters('acrimgtodo'),'\"')]"
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.DBforPostgreSQL/servers",
+            "sku": "[variables('postgresSKU')]",
+            "kind":"",
+            "name":"[parameters('postgrename')]",
+            "apiVersion": "2017-12-01",
+            "location":"[parameters('location')]",
+            "properties": {
+                "version": "[variables('postgresVersion')]",
+                "administratorLogin": "[parameters('postgreuser')]",
+                "administratorLoginPassword": "[parameters('postgrepassword')]",
+                "sslEnforcement": "Disabled",
+                "createMode": "Default"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/virtualNetworks/', variables('vnetName'))]"
+            ],
+            "resources": [
+                {
+                    "name": "[variables('postgresDB')]",
+                    "type": "databases",
+                    "apiVersion": "2017-12-01",
+                    "properties": {
+                        "charset": "utf8",
+                        "collation": "English_United States.1252"
+                    },
+                    "dependsOn": [
+                        "[concat('Microsoft.DBforPostgreSQL/servers/', parameters('postgrename'))]"
+                    ]
+                },
+                {
+                    "name": "[variables('postgresDB')]",
+                    "type": "virtualNetworkRules",
+                    "apiVersion": "2017-12-01",
+                    "properties":{
+                        "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetName'), variables('subnetAppName'))]"
+                    },
+                    "dependsOn": [
+                        "[concat('Microsoft.DBforPostgreSQL/servers/', parameters('postgrename'))]"
+                    ]
+                }
+            ]
+        }                  
+    ],
+    "outputs": {}
+  }
+  

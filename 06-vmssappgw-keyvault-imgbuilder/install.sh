@@ -59,7 +59,7 @@ az login --identity --username "${IDENTITYID}"
 # login to ACR
 az acr login --name valdadevop001acr
 # collect PostgreSQL password
-POSTGRESPWD=\"\$()az keyvault secret show -n postgres-secret --vault-name ${KEYVAULT_NAME} --query 'value' -o tsv\";
+POSTGRESPWD=\"\$(az keyvault secret show -n postgres-secret --vault-name ${KEYVAULT_NAME} --query 'value' -o tsv)\";
 POSTGRESPWD=\${POSTGRESPWD//+/%2B}
 POSTGRESPWD=\${POSTGRESPWD////%2F}
 POSTGRESPWD=\${POSTGRESPWD//=/%3D}

@@ -1,0 +1,82 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters":{
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "imagename":{
+            "type": "string",
+            "defaultValue": "myimage-001",
+            "metadata": {
+                "metadata":{
+                    "description": "Managed image name produced by image builder"
+                }
+            }
+        },
+        "rpmuri":{
+            "type": "string",
+            "metadata": {
+                "description": "URI for RPM package with application"
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources":[
+        {
+            "name": "ImageBuilder",
+            "type": "Microsoft.VirtualMachineImages/imageTemplates",
+            "apiVersion": "2019-05-01-preview",
+            "location": "[parameters('location')]",
+            "dependsOn": [],
+            "properties": {
+                "buildTimeoutInMinutes": 80,
+                "source": {
+                    "type": "PlatformImage",
+                    "publisher": "OpenLogic",
+                    "offer": "CentOS",
+                    "sku": "7.6",
+                    "version": "latest"
+                },
+                "customize": [
+                    {
+                        "type": "Shell",
+                        "name": "Install_App",
+                        "inline": [
+                            "sudo yum install -y epel-release",
+                            "sudo yum install -y java-1.8.0-openjdk sudo wget jq",
+                            "sudo yum update -y",
+                            "[concat('sudo wget \"',parameters('rpmuri'),'\" -O /tmp/app.rpm')]",
+                            "sudo echo 'NOPE=NOPE' > /etc/mysimpleapp.env",
+                            "sudo yum install -y /tmp/app.rpm"
+                        ]
+                    }
+                ],
+                "distribute": [
+                    {
+                        "type": "ManagedImage",
+                        "imageId": "[resourceId('Microsoft.Compute/images', parameters('imagename'))]",
+                        "location": "[parameters('location')]",
+                        "runOutputName": "[parameters('imagename')]",
+                        "artifactTags": {
+                            "source": "azVmImageBuilder",
+                            "baseosimg": "centos"
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs":{
+        "managedImageID":{
+            "condition":true,
+            "type": "string",
+            "value": "[resourceId('Microsoft.Compute/images', parameters('imagename'))]"
+        }
+    }
+}
