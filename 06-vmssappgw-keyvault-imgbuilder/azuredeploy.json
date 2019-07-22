@@ -265,16 +265,11 @@
                 ],
                 "backendHttpSettingsCollection":[
                     {
-                        "name": "spabackend",
+                        "name": "backend",
                         "properties":{
                             "port": 8080,
-                            "protocol":"Http"                        }
-                    },
-                    {
-                        "name": "todobackend",
-                        "properties":{
-                            "port": 8081,
-                            "protocol":"Http"                        }
+                            "protocol":"Http"                        
+                        }
                     }
                 ],
                 "httpListeners":[
@@ -310,54 +305,31 @@
                     {
                         "name": "MyAppRule",
                         "properties":{
-                            "ruleType":"PathBasedRouting",
+                            "ruleType":"Basic",
                             "httpListener":{
                                 "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', variables('appgw'), 'MyAppListener')]"
                             },
-                            "urlPathMap":{
-                                "id": "[resourceId('Microsoft.Network/applicationGateways/urlPathMaps', variables('appgw'), 'MyApp')]"
+                            "backendAddressPool":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
+                            },
+                            "backendHttpSettings":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appgw'), 'backend')]"
                             }
                         }
                     },
                     {
                         "name": "MyAppRuleSSL",
                         "properties":{
-                            "ruleType":"PathBasedRouting",
+                            "ruleType":"Basic",
                             "httpListener":{
                                 "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', variables('appgw'), 'MyAppListenerSSL')]"
                             },
-                            "urlPathMap":{
-                                "id": "[resourceId('Microsoft.Network/applicationGateways/urlPathMaps', variables('appgw'), 'MyApp')]"
-                            }
-                        }
-                    }
-                ],
-                "urlPathMaps":[
-                    {
-                        "name": "MyApp",
-                        "properties":{
-                            "defaultBackendAddressPool":{
+                            "backendAddressPool":{
                                 "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
                             },
-                            "defaultBackendHttpSettings":{
-                                "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appgw'), 'spabackend')]"
-                            },
-                            "pathRules":[
-                                {
-                                    "name": "todo",
-                                    "properties":{
-                                        "backendAddressPool":{
-                                            "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appgw'), 'MyAppBackend')]"
-                                        },
-                                        "backendHttpSettings":{
-                                            "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appgw'), 'todobackend')]"
-                                        },
-                                        "paths":[
-                                            "/api/todo"
-                                        ]
-                                    }
-                                }
-                            ]
+                            "backendHttpSettings":{
+                                "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appgw'), 'backend')]"
+                            }
                         }
                     }
                 ]
