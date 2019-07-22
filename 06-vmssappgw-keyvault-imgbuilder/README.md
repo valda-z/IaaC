@@ -83,6 +83,9 @@ Now let's create our managed image - we will use for it Azure Image Builder whic
 ```bash
 # Resource group for image builder
 export RGIMG=TST_06_IMGBUILDER
+export IMAGENAME="myimage-001"
+
+# create RG
 az group create --location ${LOCATION} --name ${RGIMG}
 
 # assign role for azure system user "Azure Virtual Machine Image Builder"
@@ -92,24 +95,17 @@ az role assignment create \
     --scope $(az group show -n ${RGIMG} --query id -o tsv)
 
 az group deployment create -g ${RGIMG} --template-file imgbuilder.json --parameters \
-    rpmuri="${RPM}" 
+    rpmuri="${RPM}" \
+    imagename="${IMAGENAME}"
 
 az resource invoke-action \
      --resource-group ${RGIMG} \
      --resource-type  Microsoft.VirtualMachineImages/imageTemplates \
-     -n ImageBuilder \
+     -n myimgBuilder \
      --action Run
 
-/etc/systemd/system/mysimpleapp.service.d/override.conf
-[Service]
-ExecStartPre=/bin/bash /tmp/run.sh
-EnvironmentFile=-/tmp/my.env
-
-[root@centos ~]# cat //usr/local/mysimpleapp/run.sh/run.sh
-#!/bin/bash
-/bin/az login --identity --username 87fd7613-03e0-4350-b553-21b0c568123d
-x=$(/bin/az keyvault secret show -n postgres-secret --vault-name valdakv05x006 --query 'value' -o tsv)
-echo "POSTGRESQL_URL=\"QQQQ-${x}\"" > /tmp/my.env
+# get Image ID for provisioning
+export IMAGEID="$(az image show -g ${RGIMG} -n ${IMAGENAME} --query id -o tsv)"
 
 ```
 
@@ -120,18 +116,16 @@ Now let's deploy template with custom managed image
 az group deployment create -g ${RG} --template-file azuredeploy.json --parameters \
     username="valda" \
     sshkey="$(cat ~/.ssh/id_rsa.pub)" \
-    vmcount="3" \
-    postgrename="valdatst05" \
+    vmcount="2" \
+    postgrename="valdatst06" \
     postgreuser="valda" \
     postgrepassword="$(az keyvault secret show -n postgres-secret --vault-name  ${KEYVAULT} --query 'value' -o tsv)" \
-    acrname="${ACR_NAME}" \
     identityid="${IDENTITYID}" \
-    identityprincipalid="${IDENTITYPRINCIPALID}" \
+    identityclientid="${IDENTITYCLIENTID}" \
     keyvault="${KEYVAULT}" \
     appgwCertSID="${CERTSID}" \
-    acrimgspa="${ACR_URL}/myappspa:v1" \
-    acrimgtodo="${ACR_URL}/myapptodo:v1" \
-    artifactsLocation="https://raw.githubusercontent.com/valda-z/IaaC/master/05-vmssappgw-keyvault/install.sh"
+    imageID="${IMAGEID}" \
+    artifactsLocation="https://raw.githubusercontent.com/valda-z/IaaC/master/06-vmssappgw-keyvault-imgbuilder/install.sh"
 
 ```
 

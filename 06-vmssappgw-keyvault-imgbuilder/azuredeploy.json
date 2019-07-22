@@ -67,40 +67,29 @@
                 "description": "PostgreSQL password"
               }
         },
-        "acrname":{
-            "type": "string",
-            "metadata": {
-                "description": "ACR name"
-              }
-        },
-        "acrimgspa":{
-            "type": "string",
-            "metadata": {
-                "description": "container image name for SPA app"
-              }
-        },
-        "acrimgtodo":{
-            "type": "string",
-            "metadata": {
-                "description": "container image name for TODO app"
-              }
-        },
         "identityid":{
             "type": "string",
             "metadata": {
                 "description": "User managed identity id"
               }
         },
-        "identityprincipalid":{
+        "identityclientid":{
             "type": "string",
             "metadata": {
-                "description": "User managed identity principal id"
+                "description": "User managed identity client id"
               }
         },
         "keyvault":{
             "type": "string",
             "metadata": {
                 "description": "keyvault name containing postgresql password"
+              }
+        },
+        "keyvaultsecret":{
+            "type": "string",
+            "defaultValue": "postgres-secret",
+            "metadata": {
+                "description": "keyvault secret name"
               }
         },
         "artifactsLocation":{
@@ -114,6 +103,12 @@
             "metadata": {
                 "description": "SSL certificate SID in keyvault"
               }
+        },
+        "imageID":{
+            "type": "string",
+            "metadata": {
+                "description": "ID of managed image with custom VM image"
+            }
         }
     },
     "variables": {
@@ -407,10 +402,7 @@
                 "virtualMachineProfile": {
                     "storageProfile":{
                         "imageReference": {
-                            "publisher": "OpenLogic",
-                            "offer": "CentOS",
-                            "sku": "7.6",
-                            "version": "latest"
+                            "id": "[parameters('imageID')]"
                         },
                         "osDisk":{
                             "createOption":"FromImage",
@@ -465,7 +457,7 @@
                                         "fileUris": [
                                             "[parameters('artifactsLocation')]"
                                         ],
-                                        "commandToExecute": "[concat('sudo bash install.sh \"',variables('postgresurl'),'\" \"',parameters('acrname'),'\" \"',parameters('identityprincipalid'),'\" \"',parameters('keyvault'),'\" \"',parameters('acrimgspa'),'\" \"',parameters('acrimgtodo'),'\"')]"
+                                        "commandToExecute": "[concat('sudo bash install.sh \"',variables('postgresurl'),'\" \"',parameters('identityclientid'),'\" \"',parameters('keyvault'),'\" \"',parameters('keyvaultsecret'),'\"')]"
                                     }
                                 }
                             }

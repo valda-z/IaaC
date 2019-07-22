@@ -23,13 +23,20 @@
             "metadata": {
                 "description": "URI for RPM package with application"
             }
+        },
+        "configshelluri":{
+            "type": "string",
+            "defaultValue": "https://raw.githubusercontent.com/valda-z/IaaC/master/06-vmssappgw-keyvault-imgbuilder/configure.sh",
+            "metadata": {
+                "description": "URI for configuration script"
+            }
         }
     },
     "variables": {
     },
     "resources":[
         {
-            "name": "ImageBuilder",
+            "name": "myimgBuilder",
             "type": "Microsoft.VirtualMachineImages/imageTemplates",
             "apiVersion": "2019-05-01-preview",
             "location": "[parameters('location')]",
@@ -53,7 +60,10 @@
                             "sudo yum update -y",
                             "[concat('sudo wget \"',parameters('rpmuri'),'\" -O /tmp/app.rpm')]",
                             "sudo echo 'NOPE=NOPE' > /etc/mysimpleapp.env",
-                            "sudo yum install -y /tmp/app.rpm"
+                            "sudo yum install -y /tmp/app.rpm",
+                            "[concat('sudo wget \"',parameters('configshelluri'),'\" -O /tmp/configure.sh')]",
+                            "sudo chmod +x /tmp/configure.sh",
+                            "sudo /bin/bash /tmp/configure.sh"
                         ]
                     }
                 ],
